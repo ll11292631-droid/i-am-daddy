@@ -1278,7 +1278,7 @@ Schema = (() => {
     .top-drop:active { background: rgba(255,210,92,.10); box-shadow: inset 0 0 12px rgba(255,210,92,.14); }
     /* 角标字形替代 ◇▣◈ 字符图标：既统一口径，又不用手写 SVG */
     .top-drop::before { content: '◆'; position: absolute; left: 9px; top: 50%;
-      transform: translateY(-50%); font-size: max(7px, calc(7px + var(--fs-d, 0px)))); color: rgba(255,210,92,.5); pointer-events: none; }
+      transform: translateY(-50%); font-size: max(7px, calc(7px + var(--fs-d, 0px))); color: rgba(255,210,92,.5); pointer-events: none; }
     #drop-roster::before { content: '■'; color: rgba(160,200,240,.5); }
     #drop-base::before { content: '▲'; color: rgba(140,220,200,.5); }
     .top-bar-center .top-drop + .top-drop { position: relative; }
@@ -1343,7 +1343,7 @@ Schema = (() => {
     .chat-msg { display: flex; flex-direction: column; max-width: 78%; position: relative; }
     .chat-msg.user { align-self: flex-end; align-items: flex-end; }
     .chat-msg.ai { align-self: flex-start; align-items: flex-start; }
-    .chat-name { font-size: max(11px, calc(11px + var(--fs-d, 0px)))); color: #999; padding: 0 4px; margin-bottom: 2px; }
+    .chat-name { font-size: max(11px, calc(11px + var(--fs-d, 0px))); color: #999; padding: 0 4px; margin-bottom: 2px; }
     /* ===== 聊天记录（展开态）=====
        ⚠ 正文已经搬到独立 Galgame 窗口（见下方 #gal-layer）。
        这里只剩两件事：① 收起态不显示任何正文（窗口负责显示）；
@@ -1391,7 +1391,7 @@ Schema = (() => {
       background: linear-gradient(180deg, rgba(30,44,68,.94), rgba(18,26,40,.94));
       border: 1px solid rgba(120,170,230,.45); border-right: 3px solid #5a8acf; border-radius: 9px;
       box-shadow: 0 6px 20px rgba(0,0,0,.55); max-height: 4.6em; overflow: hidden; text-overflow: ellipsis; }
-    #gal-float .gal-you::before { content: '玩家 · '; color: #7fa8dc; font-size: max(11px, calc(11px + var(--fs-d, 0px)))); letter-spacing: 1px; }
+    #gal-float .gal-you::before { content: '玩家 · '; color: #7fa8dc; font-size: max(11px, calc(11px + var(--fs-d, 0px))); letter-spacing: 1px; }
     #gal-float .gal-you.off { display: none; }
 
     /* ---- 对话窗主体：贴底通栏 ---- */
@@ -1441,7 +1441,7 @@ Schema = (() => {
     #gal-next { right: 30px; }
     /* 页角标（第 3/7 页）：居中悬在箭头之上 */
     #gal-pager { position: absolute; left: 50%; transform: translateX(-50%); bottom: 14px; z-index: 4;
-      font-size: max(11px, calc(11px + var(--fs-d, 0px)))); letter-spacing: 2px; color: rgba(190,205,225,.7);
+      font-size: max(11px, calc(11px + var(--fs-d, 0px))); letter-spacing: 2px; color: rgba(190,205,225,.7);
       text-shadow: 0 1px 4px rgba(0,0,0,.8); pointer-events: none; }
     @media (max-width: 900px) {
       #gal-layer { height: 40vh; }
@@ -1495,7 +1495,7 @@ Schema = (() => {
     .chat-msg:hover .msg-controls { opacity: 1; }
     .chat-msg.user .msg-controls { left: 0; }
     .chat-msg.ai .msg-controls { right: 0; }
-    .ctrl-btn { background: none; border: none; color: #ccc; cursor: pointer; font-size: max(11px, calc(11px + var(--fs-d, 0px)))); padding: 2px 4px; }
+    .ctrl-btn { background: none; border: none; color: #ccc; cursor: pointer; font-size: max(11px, calc(11px + var(--fs-d, 0px))); padding: 2px 4px; }
     .ctrl-btn:hover { color: #fff; background: #333; border-radius: 3px; }
     .ctrl-btn.danger:hover { color: #ff5566; }
     #chat-input-area { display: flex; align-items: center; gap: 8px; padding: 13px 14px;
@@ -1673,7 +1673,7 @@ Schema = (() => {
       background: rgba(16,20,28,0.92); border: 2px solid #6f7f9c; border-radius: 10px;
       color: #e8eef8; font-family: inherit; transition: 0.15s; box-shadow: 0 4px 12px rgba(0,0,0,0.45); }
     .diff-num-btn:hover { border-color: #ffd25c; background: rgba(30,36,48,0.96); }
-    .diff-num-btn .dnb-cap { font-size: max(9px, calc(9px + var(--fs-d, 0px)))); color: #9aa3b0; letter-spacing: 1px; }
+    .diff-num-btn .dnb-cap { font-size: max(9px, calc(9px + var(--fs-d, 0px))); color: #9aa3b0; letter-spacing: 1px; }
     .diff-num-btn .dnb-num { font-size: calc(20px + var(--fs-d, 0px) + var(--fs-dl, 0px)); font-weight: bold; color: #ffd98c; line-height: 1.05; }
     .diff-num-btn.inert { border-color: #4a5060; }
     .diff-num-btn.inert .dnb-num { color: #cfd8e3; }
@@ -1682,7 +1682,7 @@ Schema = (() => {
       background: linear-gradient(180deg, rgba(9,11,16,0.97), rgba(13,17,24,0.99)); backdrop-filter: blur(3px); }
     .diff-wheel-head { flex: 0 0 auto; padding: 22px 24px 10px; text-align: center; font-size: calc(20px + var(--fs-d, 0px) + var(--fs-dl, 0px));
       font-weight: bold; color: #ffd98c; letter-spacing: 4px; }
-    .diff-wheel-head .dif-hint { display: block; margin-top: 6px; font-size: max(11px, calc(11px + var(--fs-d, 0px)))); font-weight: normal;
+    .diff-wheel-head .dif-hint { display: block; margin-top: 6px; font-size: max(11px, calc(11px + var(--fs-d, 0px))); font-weight: normal;
       color: #8b95a6; letter-spacing: 0; }
     .diff-wheel-list { flex: 1 1 auto; overflow: hidden; padding: 0 24px; position: relative;
       pointer-events: none; }   /* 禁止手动滚动/点击：唯一换档入口 = ▲/▼ 箭头按钮（scrollTo 程序化滚动仍生效） */
@@ -1728,10 +1728,10 @@ Schema = (() => {
     .sq-card .sq-name { font-size: calc(16px + var(--fs-d, 0px) + var(--fs-dl, 0px)); font-weight: bold; color: #e8eef8; letter-spacing: 2px;
       text-align: center; text-shadow: 0 2px 8px rgba(0,0,0,0.8); }
     .sq-card .sq-tag { font-size: max(11px, calc(12px + var(--fs-d, 0px))); color: #ffd98c; text-align: center; }
-    .sq-card .sq-desc { font-size: max(11px, calc(11px + var(--fs-d, 0px)))); color: #b9c2d0; text-align: center; line-height: 1.6; }
+    .sq-card .sq-desc { font-size: max(11px, calc(11px + var(--fs-d, 0px))); color: #b9c2d0; text-align: center; line-height: 1.6; }
     .sq-card.locked { cursor: not-allowed; opacity: 0.42; filter: grayscale(0.6); }
     .sq-card.locked:hover { border-color: rgba(140,160,200,0.22); background: rgba(14,17,23,0.62); }
-    .sq-card .sq-lock { position: absolute; right: 8px; bottom: 8px; font-size: max(10px, calc(10px + var(--fs-d, 0px)))); color: #cfd8e3;
+    .sq-card .sq-lock { position: absolute; right: 8px; bottom: 8px; font-size: max(10px, calc(10px + var(--fs-d, 0px))); color: #cfd8e3;
       background: rgba(0,0,0,0.55); border: 1px solid rgba(140,160,200,0.3); border-radius: 4px; padding: 2px 6px; }
     .sq-tip { flex: 0 0 auto; text-align: center; font-size: max(11px, calc(12px + var(--fs-d, 0px))); color: #cfd8e3; padding: 4px 26px 0; }
     .sq-tip b { color: #ffd98c; }
@@ -1745,7 +1745,7 @@ Schema = (() => {
     .top-drop-panel .dp-title { font-size: max(11px, calc(13px + var(--fs-d, 0px))); font-weight: bold; color: #ffd98c; margin-bottom: 2px; }
     .collect-item { font-size: max(11px, calc(12px + var(--fs-d, 0px))); color: #ddd; padding: 6px 8px; border-bottom: 1px solid #2a2e38; }
     .collect-item b { color: #ffd98c; }
-    .collect-item .d { color: #9aa3b0; font-size: max(11px, calc(11px + var(--fs-d, 0px)))); }
+    .collect-item .d { color: #9aa3b0; font-size: max(11px, calc(11px + var(--fs-d, 0px))); }
     /* 干员卡 */
     .dp-grid { display: flex; flex-wrap: wrap; gap: 10px; }
     .op-cqcard { width: 200px; background: #1c1e24; border: 1px solid #4a5060; border-radius: 10px;
@@ -1754,14 +1754,14 @@ Schema = (() => {
     .op-cqcard .cq-head img { width: 46px; height: 46px; object-fit: contain; border-radius: 6px;
       background: #111; }
     .op-cqcard .cq-head .cq-name { font-size: max(11px, calc(13px + var(--fs-d, 0px))); font-weight: bold; color: #ffd98c; }
-    .op-cqcard .cq-row { font-size: max(11px, calc(11px + var(--fs-d, 0px)))); color: #ccc; display: flex; justify-content: space-between; }
+    .op-cqcard .cq-row { font-size: max(11px, calc(11px + var(--fs-d, 0px))); color: #ccc; display: flex; justify-content: space-between; }
     .op-cqcard .cq-row b { color: #eee; }
-    .op-cqcard .cq-push { font-size: max(11px, calc(11px + var(--fs-d, 0px)))); color: #9fe3ff; }
-    .op-cqcard .cq-tag { font-size: max(10px, calc(10px + var(--fs-d, 0px)))); color: #b9c2d0; background: #23262f; border-radius: 4px;
+    .op-cqcard .cq-push { font-size: max(11px, calc(11px + var(--fs-d, 0px))); color: #9fe3ff; }
+    .op-cqcard .cq-tag { font-size: max(10px, calc(10px + var(--fs-d, 0px))); color: #b9c2d0; background: #23262f; border-radius: 4px;
       padding: 2px 5px; }
-    .op-cqcard .cq-schema { font-size: max(10px, calc(10px + var(--fs-d, 0px)))); color: #8a93a2; border-top: 1px dashed #3a3f4a; padding-top: 5px;
+    .op-cqcard .cq-schema { font-size: max(10px, calc(10px + var(--fs-d, 0px))); color: #8a93a2; border-top: 1px dashed #3a3f4a; padding-top: 5px;
       line-height: 1.5; overflow: hidden; max-height: 74px; }
-    .op-cqcard .promote-btn { font-size: max(11px, calc(11px + var(--fs-d, 0px)))); background: #2b5a8f; color: #fff; border: none; border-radius: 5px;
+    .op-cqcard .promote-btn { font-size: max(11px, calc(11px + var(--fs-d, 0px))); background: #2b5a8f; color: #fff; border: none; border-radius: 5px;
       padding: 5px; cursor: pointer; }
     .op-cqcard .promote-btn.done { background: #3a3f4a; color: #888; cursor: default; }
     .op-cqcard .promote-btn:disabled { cursor: default; }
@@ -1772,8 +1772,8 @@ Schema = (() => {
     .op-card { position: relative; width: 88px; background: #1c1e24; border: 2px solid #555; border-radius: 8px;
       display: flex; flex-direction: column; align-items: center; padding: 6px; cursor: pointer; }
     .op-card img { width: 54px; height: 54px; object-fit: contain; }
-    .op-card .nm { font-size: max(10px, calc(10px + var(--fs-d, 0px)))); color: #ddd; margin-top: 3px; text-align: center; word-break: break-all; }
-    .op-card .tag { font-size: max(9px, calc(9px + var(--fs-d, 0px)))); color: #9aa3b0; }
+    .op-card .nm { font-size: max(10px, calc(10px + var(--fs-d, 0px))); color: #ddd; margin-top: 3px; text-align: center; word-break: break-all; }
+    .op-card .tag { font-size: max(9px, calc(9px + var(--fs-d, 0px))); color: #9aa3b0; }
     .op-card.promote-pick { border-color: #2bb86e; background: rgba(43,184,110,.18); }
     .op-card.disabled { opacity: .4; pointer-events: none; }
     .sec-title { font-size: max(11px, calc(13px + var(--fs-d, 0px))); color: #faad14; margin: 10px 2px 6px; font-weight: bold; }
@@ -1787,7 +1787,7 @@ Schema = (() => {
     .mini-btn:disabled { opacity: .45; cursor: not-allowed; }
     .col-item { font-size: max(11px, calc(12px + var(--fs-d, 0px))); color: #ddd; padding: 6px 10px; border-bottom: 1px solid #2a2e38; }
     .col-item b { color: #ffd98c; }
-    .col-item .d { color: #9aa3b0; font-size: max(11px, calc(11px + var(--fs-d, 0px)))); }
+    .col-item .d { color: #9aa3b0; font-size: max(11px, calc(11px + var(--fs-d, 0px))); }
     .kv { display: inline-block; font-size: max(11px, calc(12px + var(--fs-d, 0px))); color: #cfd8e3; background: #23262f; border: 1px solid #3a3f4a;
       border-radius: 6px; padding: 4px 8px; margin: 3px; }
     .kv b { color: #7ec8ff; }
@@ -1854,9 +1854,9 @@ Schema = (() => {
       justify-content: center; font-size: calc(16px + var(--fs-d, 0px) + var(--fs-dl, 0px)); color: #0f1218; }
     .cc-meta { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
     .cc-nm { font-size: max(11px, calc(13px + var(--fs-d, 0px))); font-weight: bold; color: #ffd98c; word-break: break-all; }
-    .cc-desc { font-size: max(11px, calc(11px + var(--fs-d, 0px)))); color: #9aa3b0; line-height: 1.55; }
+    .cc-desc { font-size: max(11px, calc(11px + var(--fs-d, 0px))); color: #9aa3b0; line-height: 1.55; }
     .cc-foot { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 3px; }
-    .cc-tag { font-style: normal; font-size: max(10px, calc(10px + var(--fs-d, 0px)))); color: #9fe3ff; background: #1e2632;
+    .cc-tag { font-style: normal; font-size: max(10px, calc(10px + var(--fs-d, 0px))); color: #9fe3ff; background: #1e2632;
       border-radius: 3px; padding: 1px 6px; }
 
     /* ---- 左栏详情 ---- */
@@ -1866,23 +1866,23 @@ Schema = (() => {
     .dt-top img { width: 56px; height: 56px; object-fit: contain; flex: 0 0 auto; }
     .dt-id { flex: 1 1 auto; min-width: 0; }
     .dt-name { display: block; font-size: calc(15px + var(--fs-d, 0px) + var(--fs-dl, 0px)); font-weight: bold; color: #eef3fa; word-break: break-all; }
-    .dt-state { display: block; font-size: max(11px, calc(11px + var(--fs-d, 0px)))); color: #9aa3b0; margin-top: 5px; }
+    .dt-state { display: block; font-size: max(11px, calc(11px + var(--fs-d, 0px))); color: #9aa3b0; margin-top: 5px; }
     .dt-state b { color: #7ec8ff; }
     .dt-tabs { display: flex; border-bottom: 1px solid #2c333f; }
     .dt-tab { flex: 1 1 0; padding: 8px 0; text-align: center; font-size: max(11px, calc(12px + var(--fs-d, 0px))); color: #8f99a8; cursor: pointer; }
     .dt-tab.on { color: #ffd98c; background: rgba(255,217,140,.07); box-shadow: inset 0 -2px 0 #ffd98c; }
     /* 标本库专用：精一/精二胸像临时查阅开关 */
     .dt-arts { display: flex; align-items: center; gap: 6px; padding: 7px 12px 0; flex-wrap: wrap; }
-    .dt-art { font-family: inherit; font-size: max(11px, calc(11px + var(--fs-d, 0px)))); padding: 3px 9px; cursor: pointer;
+    .dt-art { font-family: inherit; font-size: max(11px, calc(11px + var(--fs-d, 0px))); padding: 3px 9px; cursor: pointer;
       color: #9aa3b0; background: #1c2029; border: 1px solid #39414f; border-radius: 5px; }
     .dt-art:hover { color: #e8e6e0; border-color: #6d7b92; }
     .dt-art.on { color: #ffd98c; border-color: rgba(255,210,92,.6); background: rgba(255,217,140,.08); }
-    .dt-arthint { font-size: max(10px, calc(10px + var(--fs-d, 0px)))); color: #6f7887; }
+    .dt-arthint { font-size: max(10px, calc(10px + var(--fs-d, 0px))); color: #6f7887; }
     .dt-body { padding: 10px 12px 14px; }
     .dt-empty { color: #7b8595; font-size: max(11px, calc(13px + var(--fs-d, 0px))); line-height: 2; text-align: center; padding: 46px 12px; }
     .long-panel { position: fixed; right: 226px; bottom: calc(28% + 10px); width: 190px; z-index: 90;
       background: rgba(10,12,16,.86); border: 1px solid rgba(150,170,210,.28); border-radius: 8px; padding: 8px 10px;
-      font-size: max(11px, calc(11px + var(--fs-d, 0px)))); color: #cfd8e3; pointer-events: none; }
+      font-size: max(11px, calc(11px + var(--fs-d, 0px))); color: #cfd8e3; pointer-events: none; }
     .long-panel h4 { margin: 0 0 4px; color: #ffd98c; font-size: max(11px, calc(12px + var(--fs-d, 0px))); }
     /* 常驻三轴雷达：右下角那一条竖列的下段 —— 与聊天面板同底边(bottom: 0)、同高度(28%)，
        宽 244 + 右边距 8 = 252，正好与聊天面板让出的右侧条带(#chat-container right: 260px)同宽，
@@ -1892,7 +1892,7 @@ Schema = (() => {
       z-index: 90; overflow: hidden;
       display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
       background: rgba(10,12,16,.86); border: 1px solid rgba(150,170,210,.28); border-radius: 8px;
-      padding: 10px 14px; font-size: max(11px, calc(11px + var(--fs-d, 0px)))); color: #cfd8e3; pointer-events: none; }
+      padding: 10px 14px; font-size: max(11px, calc(11px + var(--fs-d, 0px))); color: #cfd8e3; pointer-events: none; }
     .radar-panel h4 { margin: 0 0 2px; color: #ffd98c; font-size: max(11px, calc(12px + var(--fs-d, 0px))); text-align: center; letter-spacing: .5px; }
     .radar-panel > div { flex: 0 0 auto; line-height: 0; }
     .radar-panel > div:last-child { line-height: 1.4; text-align: center; margin-top: 4px; }
@@ -2096,14 +2096,22 @@ Schema = (() => {
 
     /* ---- ⑥ 开局 / 难度轮盘 / 弹窗 / 通用面板：一律给「矮视口」留出内部滚动 ---- */
     /* 分队页（截图"上下一大片空"的那屏）：标题/选牌/说明/按钮四段的上下留白整体收掉，
-       牌宽保持 158（5 张刚好铺满 873），只压高度，不压字号可读性（12/13px 已保底 11px）。 */
-    body.ui-compact .sq-view { padding-top: var(--bar-h); }
+       牌宽保持 158（5 张刚好铺满 873），只压高度，不压字号可读性（12/13px 已保底 11px）。
+       ⚠ padding-bottom：.sq-view 的父级 #main-content 是**整屏高**（top:0→bottom:0），
+       而底部聊天带(z-index 50)盖在它上面 —— 不留出这段，说明文字与「返回/确认编队」
+       就会落进输入行里被压住（手机上的"还是有一点挡住"）。26% ≈ 输入行 + 渐变带。 */
+    body.ui-compact .sq-view { padding-top: var(--bar-h); padding-bottom: calc(var(--vh) * 26); }
     body.ui-compact .sq-title { padding: 6px 0 2px; letter-spacing: 3px; }
-    body.ui-compact .sq-scroll { gap: 8px; padding: 2px 12px 4px; }
-    body.ui-compact .sq-card { flex: 0 0 158px; gap: 4px; padding: 8px 7px; }
-    body.ui-compact .sq-card .sq-icon { height: 54px; }
+    body.ui-compact .sq-scroll { gap: 8px; padding: 2px 12px 4px; overflow-y: auto; }
+    body.ui-compact .sq-card { flex: 0 0 158px; gap: 4px; padding: 8px 7px; justify-content: center; }
+    /* 图标：SVG 是 width/height=72 的定值（squadIconSVG(s.图标,72)），只压容器高并不管用，
+       必须直接改 svg 尺寸（有 viewBox，等比缩放）。54 的容器高也要跟着收，否则又是溢出。 */
+    body.ui-compact .sq-card .sq-icon { height: 42px; }
+    body.ui-compact .sq-card .sq-icon svg { width: 40px; height: 40px; }
     body.ui-compact .sq-tip { padding: 2px 12px 0; }
-    body.ui-compact .sq-btns { gap: 10px; padding: 5px 12px 9px; }
+    body.ui-compact .sq-btns { gap: 8px; padding: 4px 12px 6px; }
+    /* 「返回 / 确认编队」：整体再小 1/3（字号 20→-3 后是 17，这里直接给 13 + 收 padding） */
+    body.ui-compact .sq-btns .big-btn { padding: 5px 11px; font-size: 13px; border-radius: 5px; }
     body.ui-compact .diff-wheel-head { padding: 10px 14px 4px; letter-spacing: 2px; }
     body.ui-compact .dw-arrow { height: 28px; }
     /* 行高下限 66 与 JS（_openDifficultyWheel 的 layoutWheel）保持一致；
@@ -2114,7 +2122,9 @@ Schema = (() => {
     body.ui-compact .diff-wheel-foot { padding: 10px 16px 14px; gap: 10px; }
     body.ui-compact .home-deco { max-width: 92vw; }
     body.ui-compact .diff-num-btn { width: 50px; height: 50px; margin-left: -10px; }
-    body.ui-compact .home-side { right: 10px; bottom: 10px; gap: 6px; }
+    /* 主城（.home-view 也是整屏高）：「出门探索 / 标本室」原本 bottom:10px，会落进输入行里
+       被盖掉 —— 紧凑档把它们抬到底部聊天带的上沿之上。 */
+    body.ui-compact .home-side { right: 10px; bottom: calc(var(--vh) * 24); gap: 6px; }
     body.ui-compact .big-btn { padding: 9px 16px; border-radius: 5px; }
     body.ui-compact .view-panel { padding: 14px; min-width: min(92vw, 320px); max-width: 92vw; }
     body.ui-compact .row { gap: 8px; margin-top: 10px; }
@@ -2812,7 +2822,7 @@ Schema = (() => {
         hud.id = 'node-hud';
         hud.style.cssText = 'position:fixed;top:calc(var(--bar-h, 48px) + 4px);left:50%;transform:translateX(-50%);z-index:300;display:flex;align-items:center;gap:10px;background:rgba(10,12,16,.82);border:1px solid rgba(150,170,210,.35);border-radius:22px;padding:5px 14px;font-size: max(11px, calc(13px + var(--fs-d, 0px)));color:#e8e6e0;box-shadow:0 4px 14px rgba(0,0,0,.45);flex-wrap:wrap;justify-content:center';
         hud.innerHTML = `<span style="color:#ffd98c;font-weight:bold">${type}</span>`
-          + (year ? `<span style="color:#9aa3b0;font-size: max(11px, calc(11px + var(--fs-d, 0px))))">时间点 ${year}</span>` : '')
+          + (year ? `<span style="color:#9aa3b0;font-size: max(11px, calc(11px + var(--fs-d, 0px)))">时间点 ${year}</span>` : '')
           + (enemy ? `<span style="color:#ffb4a0;font-size: max(11px, calc(12px + var(--fs-d, 0px)))">目标：${enemy}</span>` : '')
           + (ni.$锁定 ? '<span style="color:#ff9f43">已收束·只能离开</span>' : '')
           + `<button class="mini-btn gray" id="node-leave-btn" style="padding:3px 10px${canLeave ? '' : ';opacity:.35;cursor:not-allowed'}"${canLeave ? '' : ' disabled'}>离开节点</button>`;
@@ -4394,7 +4404,7 @@ Schema = (() => {
             }
             if (ep) {
               enemyArr = [ep.未来, ep.过往, ep.现实];
-              enemyTxt = '<div style="text-align:center;margin-top:2px;color:#ff8f8f;font-size: max(11px, calc(11px + var(--fs-d, 0px))))">敌方 '
+              enemyTxt = '<div style="text-align:center;margin-top:2px;color:#ff8f8f;font-size: max(11px, calc(11px + var(--fs-d, 0px)))">敌方 '
                 + this._num(ep.未来) + ' / ' + this._num(ep.过往) + ' / ' + this._num(ep.现实) + '</div>';
             }
           }
