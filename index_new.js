@@ -519,6 +519,11 @@ Schema = (() => {
       'gal#gal-layer': rect('#gal-layer'),
       '雷达.radar-panel': rect('.radar-panel'),
       '选项栏#option-rail': rect('#option-rail'),
+      // 右下角操作列的锚点链：万一按钮没贴住屏幕底，一比就知道是哪个祖先的高度不对
+      '主内容#main-content': rect('#main-content'),
+      '主城.home-view': rect('.home-view'),
+      '右下列.home-side': rect('.home-side'),
+      '右下列.sq-btns': rect('.sq-btns'),
     };
   }
 
@@ -1653,7 +1658,15 @@ Schema = (() => {
     /* ---- 主城家园 ---- */
     .home-view { position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
     .home-deco { text-align: center; max-width: 540px; }
-    .home-side { position: absolute; right: 18px; bottom: 18px; display: flex; flex-direction: column; gap: 10px; align-items: flex-end; }
+    /* 〘游戏外·右下角操作列〙
+       ⚠ 与 .radar-panel **同一口径**：右缘 8px、宽 = --right-col - 16（桌面 244 / 紧凑档 160）。
+       ⚠ 必须 position: fixed —— 这一列要和雷达一样"贴屏幕底、嵌进聊天面板让出来的那条竖列"；
+        用 absolute 会锚在 .home-view 上，父级实际高度一旦不是满屏，bottom 就落到半屏幕处（实测踩过）。
+        fixed 与 #gal-layer / .radar-panel / #chat-expand 同一套写法，不受祖先链影响。 */
+    .home-side { position: fixed; right: 8px; bottom: 8px;
+      width: calc(var(--right-col) - 16px); display: flex; flex-direction: column;
+      gap: 10px; align-items: stretch; z-index: 60; }
+    .home-side > .big-btn { width: 100%; }
     /* 主界面加载标题：居中短暂浮现（纯装饰，几秒后自动淡出，不留文案） */
     .title-splash { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
       z-index: 500; font-size: calc(34px + var(--fs-d, 0px) + var(--fs-dl, 0px)); font-weight: bold; letter-spacing: 12px;
@@ -1666,8 +1679,10 @@ Schema = (() => {
       78% { opacity: 1; }
       100% { opacity: 0; transform: translate(-50%, -50%) scale(1.02); }
     }
-    /* 「出门探索」+ 难度数字按钮 并排 */
-    .home-go-row { position: relative; display: flex; align-items: center; justify-content: flex-end; }
+    /* 「出门探索」+ 难度数字按钮 并排（在右下角操作列里：探索键占满剩余宽，难度键固定方块） */
+    .home-go-row { position: relative; display: flex; align-items: center; gap: 8px; }
+    .home-go-row .big-btn { flex: 1 1 auto; min-width: 0; }
+    .home-go-row .diff-num-btn { flex: 0 0 auto; margin-left: 0; }
     .diff-num-btn { display: flex; flex-direction: column; align-items: center; justify-content: center;
       width: 62px; height: 62px; margin-left: -14px; padding: 0; cursor: pointer;
       background: rgba(16,20,28,0.92); border: 2px solid #6f7f9c; border-radius: 10px;
@@ -1715,10 +1730,13 @@ Schema = (() => {
     .sq-view { width: 100%; height: 100%; display: flex; flex-direction: column; padding-top: var(--bar-h); }
     .sq-title { flex: 0 0 auto; text-align: center; padding: 16px 0 10px; font-size: calc(22px + var(--fs-d, 0px) + var(--fs-dl, 0px)); font-weight: bold;
       color: #ffd98c; letter-spacing: 6px; text-shadow: 0 2px 12px rgba(0,0,0,0.8); }
-    .sq-scroll { flex: 1 1 auto; min-height: 0; display: flex; gap: 14px; align-items: stretch;
+    /* 选牌行：按钮搬走后这一行会吃到整屏高度 —— 卡片**不再拉满**，改为居中 + 限高，
+       否则 178px 宽的牌子会被拉成一根细长条（内容只占其中一小段）。 */
+    .sq-scroll { flex: 1 1 auto; min-height: 0; display: flex; gap: 14px; align-items: center;
       overflow-x: auto; overflow-y: hidden; padding: 6px 26px 10px; scrollbar-width: none; -ms-overflow-style: none; }
     .sq-scroll::-webkit-scrollbar { width: 0; height: 0; background: transparent; }
-    .sq-card { flex: 0 0 178px; display: flex; flex-direction: column; align-items: center; gap: 8px;
+    .sq-card { flex: 0 0 178px; height: min(100%, 380px); display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 8px;
       padding: 16px 12px; border: 1px solid rgba(140,160,200,0.22); border-radius: 10px; position: relative;
       background: rgba(14,17,23,0.62); cursor: pointer; transition: 0.15s; }
     .sq-card:hover { border-color: #ffd25c; background: rgba(24,29,38,0.8); }
@@ -1733,10 +1751,19 @@ Schema = (() => {
     .sq-card.locked:hover { border-color: rgba(140,160,200,0.22); background: rgba(14,17,23,0.62); }
     .sq-card .sq-lock { position: absolute; right: 8px; bottom: 8px; font-size: max(10px, calc(10px + var(--fs-d, 0px))); color: #cfd8e3;
       background: rgba(0,0,0,0.55); border: 1px solid rgba(140,160,200,0.3); border-radius: 4px; padding: 2px 6px; }
-    .sq-tip { flex: 0 0 auto; text-align: center; font-size: max(11px, calc(12px + var(--fs-d, 0px))); color: #cfd8e3; padding: 4px 26px 0; }
+    /* 说明文字：已并进右下角操作列（.sq-btns 的第一个子级，见 renderSquadSelect）——
+       它说的就是"当前选中的分队"，理应贴在「确认编队」上方；留在页面底部会被输入行盖住。 */
+    .sq-tip { flex: 0 0 auto; text-align: center; font-size: max(11px, calc(12px + var(--fs-d, 0px)));
+      color: #cfd8e3; line-height: 1.5; padding: 0 2px; }
     .sq-tip b { color: #ffd98c; }
     .sq-tip .sq-note { color: #8b95a6; }
-    .sq-btns { flex: 0 0 auto; display: flex; justify-content: center; gap: 14px; padding: 12px 26px 20px; }
+    /* 〘游戏外·右下角操作列〙同 .home-side：fixed 贴屏幕底，嵌进聊天面板让出的那条竖列
+       （absolute 会锚在 #main-content / .sq-view 上，父级高度不可靠 → 按钮会飘到半屏）。
+       跳出 .sq-view 的纵向流后，上方的选牌行就能吃满剩余高度。 */
+    .sq-btns { position: fixed; right: 8px; bottom: 8px;
+      width: calc(var(--right-col) - 16px); display: flex; flex-direction: column;
+      gap: 10px; padding: 0; z-index: 60; }
+    .sq-btns .big-btn { width: 100%; }
     /* ---- 通用节点/结算界面：聊天占满 + 右侧悬浮选项条（不遮挡聊天） ---- */
     .top-drop-panel { position: fixed; top: var(--bar-h); left: 50%; transform: translateX(-50%);
       width: min(640px, 92vw); max-height: 66vh; overflow-y: auto; z-index: 95;
@@ -2095,21 +2122,20 @@ Schema = (() => {
     body.ui-compact .dt-arts { padding: 6px 10px 0; }
 
     /* ---- ⑥ 开局 / 难度轮盘 / 弹窗 / 通用面板：一律给「矮视口」留出内部滚动 ---- */
-    /* 分队页（截图"上下一大片空"的那屏）：标题/选牌/说明/按钮四段的上下留白整体收掉，
+    /* 分队页：标题/选牌/说明三段的上下留白整体收掉，
        牌宽保持 158（5 张刚好铺满 873），只压高度，不压字号可读性（12/13px 已保底 11px）。
-       ⚠ padding-bottom：.sq-view 的父级 #main-content 是**整屏高**（top:0→bottom:0），
-       而底部聊天带(z-index 50)盖在它上面 —— 不留出这段，说明文字与「返回/确认编队」
-       就会落进输入行里被压住（手机上的"还是有一点挡住"）。26% ≈ 输入行 + 渐变带。 */
-    body.ui-compact .sq-view { padding-top: var(--bar-h); padding-bottom: calc(var(--vh) * 26); }
+       按钮已移出 .sq-view 的纵向流（见基础样式 .sq-btns → 右下角操作列），
+       这里不再需要底部让位，整屏高度全部让给卡片。 */
+    body.ui-compact .sq-view { padding-top: var(--bar-h); }
     body.ui-compact .sq-title { padding: 6px 0 2px; letter-spacing: 3px; }
     body.ui-compact .sq-scroll { gap: 8px; padding: 2px 12px 4px; overflow-y: auto; }
-    body.ui-compact .sq-card { flex: 0 0 158px; gap: 4px; padding: 8px 7px; justify-content: center; }
+    body.ui-compact .sq-card { flex: 0 0 158px; height: min(100%, 240px); gap: 4px; padding: 8px 7px; }
     /* 图标：SVG 是 width/height=72 的定值（squadIconSVG(s.图标,72)），只压容器高并不管用，
        必须直接改 svg 尺寸（有 viewBox，等比缩放）。54 的容器高也要跟着收，否则又是溢出。 */
     body.ui-compact .sq-card .sq-icon { height: 42px; }
     body.ui-compact .sq-card .sq-icon svg { width: 40px; height: 40px; }
-    body.ui-compact .sq-tip { padding: 2px 12px 0; }
-    body.ui-compact .sq-btns { gap: 8px; padding: 4px 12px 6px; }
+    body.ui-compact .sq-tip { padding: 0 2px; }
+    body.ui-compact .sq-btns { gap: 8px; }
     /* 「返回 / 确认编队」：整体再小 1/3（字号 20→-3 后是 17，这里直接给 13 + 收 padding） */
     body.ui-compact .sq-btns .big-btn { padding: 5px 11px; font-size: 13px; border-radius: 5px; }
     body.ui-compact .diff-wheel-head { padding: 10px 14px 4px; letter-spacing: 2px; }
@@ -2121,10 +2147,13 @@ Schema = (() => {
     body.ui-compact .dw-effs { padding-left: 62px; }
     body.ui-compact .diff-wheel-foot { padding: 10px 16px 14px; gap: 10px; }
     body.ui-compact .home-deco { max-width: 92vw; }
-    body.ui-compact .diff-num-btn { width: 50px; height: 50px; margin-left: -10px; }
-    /* 主城（.home-view 也是整屏高）：「出门探索 / 标本室」原本 bottom:10px，会落进输入行里
-       被盖掉 —— 紧凑档把它们抬到底部聊天带的上沿之上。 */
-    body.ui-compact .home-side { right: 10px; bottom: calc(var(--vh) * 24); gap: 6px; }
+    /* 主城右下角操作列（继承基础样式的位置：右缘 8px、宽 = --right-col - 16 = 160px）：
+       同一行里塞「出门探索 + 难度键」必须两边都收一点，否则按钮文字会被挤到换行。 */
+    body.ui-compact .home-side { gap: 6px; }
+    body.ui-compact .home-go-row { gap: 6px; }
+    body.ui-compact .home-go-row .big-btn { padding: 7px 9px; font-size: 15px; white-space: nowrap; }
+    body.ui-compact .diff-num-btn { width: 42px; height: 42px; margin-left: 0; }
+    body.ui-compact .diff-num-btn .dnb-num { line-height: 1; }
     body.ui-compact .big-btn { padding: 9px 16px; border-radius: 5px; }
     body.ui-compact .view-panel { padding: 14px; min-width: min(92vw, 320px); max-width: 92vw; }
     body.ui-compact .row { gap: 8px; margin-top: 10px; }
@@ -2940,11 +2969,14 @@ Schema = (() => {
       container.innerHTML = '<div class="sq-view">'
         + '<div class="sq-title">选择分队</div>'
         + '<div class="sq-scroll" id="sq-scroll">' + cards + '</div>'
-        + '<div class="sq-tip" id="sq-tip"></div>'
+        + '</div>'
+        // 说明 + 按钮 = 右下角操作列（fixed，贴屏幕底、嵌进聊天面板让出的那条竖列）：
+        // 说明放在「确认编队」上方，页面主体（标题 + 选牌行）则吃满整屏高度。
         + '<div class="sq-btns">'
+        + '<div class="sq-tip" id="sq-tip"></div>'
         + '<button class="big-btn btn-gray" id="sq-back">← 返回</button>'
         + '<button class="big-btn btn-gold" id="sq-next">确认编队</button>'
-        + '</div></div>';
+        + '</div>';
 
       container.querySelectorAll('.sq-card').forEach((el) => {
         const it = SQUADS.find((s) => s.key === el.dataset.k) || {};
