@@ -742,6 +742,9 @@ Schema = (() => {
     "default": { q: Q_URL+'char_002_amiya.png', a: getAva('','头像_阿米娅(寰宇独奏).png'), bg: '', id: 'char_002_amiya', full: true }
   };
   const getOp = (name) => OperatorDB[name] || OperatorDB['default'];
+  // 池里的名字是「终曲阿米娅」（见 PoolDB.hiddenBoss），立绘键是「阿米娅_炉芯终曲」——
+  // 两条指向同一份图链：否则她被收编进队伍后，卡片/头像会落到 default（普通阿米娅）身上。
+  OperatorDB['终曲阿米娅'] = OperatorDB['阿米娅_炉芯终曲'];
 
   // ---- 图链解析 ----
   //  ① 文件名字段必须整段编码：外站皮肤名含 `#`（会被当 URL 片段）、自备链含 `$` 与空格，
@@ -1043,6 +1046,31 @@ Schema = (() => {
    *  ⚠ 顺序递增，不要用 100 之类哨兵值：$当前层数 会喂给 _recomputeLongPool 的逐层衰减循环
    *  （for L=1..层数 → 每层 ×衰减档），哨兵值会把三轴直接乘成 0；层号也直接进战报文案。 */
   const HIDDEN_LAYER = 6;
+
+  // ---- 蚀刻章授予表（长线，跨局保留）------------------------------------------------------
+  //  结构见 Schema：蚀刻章[名] = { 描述, 标签 }——"简介"就是 描述（收藏品库页会一起渲染）。
+  //  两条都是**第一次**语义：已有此章则整条跳过（幂等），重复调用无害。
+  //    · 内部爱            ← 第一次遭遇「洁尔佩塔」；
+  //    · 灭世圣女-救世魔王  ← 第一次把「阿米娅·炉芯终曲」编入队伍（也是隐藏层「特殊源石」的前置之一）。
+  //  判定入口：_syncEtchBadges()（进节点当场判一次 + 每次 AI 回复后兜底判一次）。
+  const ETCH_RULES = [
+    {
+      name: '内部爱',
+      描述: '你问终末地的角色怎么塞进来的，我说天意的大手',
+      来源: '第一次遭遇 洁尔佩塔',
+    },
+    {
+      name: '灭世圣女-救世魔王',
+      描述: '灭世还是救世，这是个问题，救……救世啊',
+      来源: '第一次把 阿米娅·炉芯终曲 编入队伍',
+    },
+  ];
+  /** 编队键的容错匹配词（数组，命中任意一个即可）：
+   *   · 池里的名字是「终曲阿米娅」（见 PoolDB.hiddenBoss），立绘键是「阿米娅_炉芯终曲」，
+   *     玩家/AI 也可能写成「炉芯终曲阿米娅」—— 三种写法都要能认出来。 */
+  const ETCH_ROSTER_KEYWORD = { '灭世圣女-救世魔王': ['炉芯终曲', '终曲阿米娅'] };
+  /** 遭遇名匹配词（数组）：节点遭遇口径取 _mainTargetName + 切片字段，按"含该词"判定 */
+  const ETCH_ENCOUNTER_KEYWORD = { 内部爱: ['洁尔佩塔'] };
 
   /** 变量名归一：AI/玩家写入时可能带「」引号或空格，连字符也可能写成全角。 */
   function normName(s) {
@@ -2208,6 +2236,8 @@ Schema = (() => {
         State.pendingSquad = (v0['$难度'] || {}).分队 || '后勤分队';
       } catch (e) { State.pendingDifficulty = 1; State.pendingSquad = '后勤分队'; }
       this.switchView(resume);
+      // 蚀刻章：重开窗口时补齐一次（条件是变量驱动的，关着窗口期间达成的也不能漏发）
+      setTimeout(() => { try { this._syncEtchBadges(); } catch (e) {} }, 600);
       // 重开窗口后：重读最后一条 AI 消息并重渲染 <action_options>（选项只在"收到 AI 回复"事件时渲染，重开会丢，需补一次）
       try {
         const latest = this.win.getChatMessages ? this.win.getChatMessages(-1) : null;
@@ -2781,13 +2811,15 @@ Schema = (() => {
             // 带后缀键（来自标本库，密钥为 "干员名_编号"）：以同后缀精确匹配做【以新换旧】，避免重复
             const hasSuffix = /_[0-9a-z]{2}$/.test(name);
             if (hasSuffix) {
-              d['标本库'][name] = data; // 覆盖同键标本条目
+              data.身份 = '标本'; data.标本键 = name;   // 标本身份落库（覆盖同键标本条目）
+              d['标本库'][name] = data;
               archived++;
               return;
             }
             // 普通纯名活化阶段干员：分配新后缀新增（作为新的一位她）
             let key = `${name}_${gen()}`;
             while (d['标本库'][key]) key = `${name}_${gen()}`; // 防极小概率碰撞
+            data.身份 = '标本'; data.标本键 = key;            // 新标本带身份标记
             d['标本库'][key] = data;
             archived++;
           });
@@ -3813,6 +3845,35 @@ Schema = (() => {
       } catch (e) { return false; }
     },
 
+    /** 战报触发是否只允许「不期而遇」节点（设计口径：「进入一场特殊的战斗」＝不期而遇招惹入口专用）。
+     *  作战/紧急作战/险路恶敌的裁定在进节点时已由对局导向给出，无需（也不应）再触发关键词战报。 */
+    _isUnexpectedNode() {
+      try {
+        const ni = readVars(this.win)['$切片'] || {};
+        const nd = (ni.$nodeData && typeof ni.$nodeData === 'object') ? ni.$nodeData : null;
+        const t = (nd && nd.type) || State.nodeType || '';
+        return t === '不期而遇';
+      } catch (e) { return false; }
+    },
+
+    /** 判定一名编队/档案键是否属于「标本库声望」（永久收藏身份，区别于野生遭遇）。
+     *  三层依据（任一命中即标本）：① 档案 身份 === '标本'；② 档案带有 标本键（原型标本键）；
+     *  ③ 标本库中存在该键（覆盖旧档/整键复制场景）；④ 键符合旧惯例 "名_两位编号" 后缀（兜底兼容历史数据，
+     *  误差方向安全——偏向"不算变奏"，避免误锁节点）。 */
+    _unitIsSpecimen(key, rec, vars) {
+      const k = String(key || '');
+      if (!k) return false;
+      if (rec) {
+        if (String(rec.身份 || '') === '标本') return true;
+        if (typeof rec.标本键 === 'string' && rec.标本键) return true;
+      }
+      try {
+        const spec = (vars && vars['标本库']) || {};
+        if (Object.prototype.hasOwnProperty.call(spec, k)) return true;
+      } catch (e) {}
+      return /_[0-9a-z]{2}$/.test(k);
+    },
+
     /** 变奏审计：进节点后若"干员编队"出现非原定角色的新增（额外收服成功入库）→ 变奏用尽+锁定，稍后自动弹出 */
     _auditNodeVariant() {
       try {
@@ -3823,8 +3884,22 @@ Schema = (() => {
         const roster = v['干员编队'] || {};
         const baseline = Array.isArray(ni.$收服基线) ? ni.$收服基线 : [];
         const declared = String(((v['行动'] || {}).原定目标) || '').trim(); // AI 声明的主角色优先
-        const designated = cleanName(declared || ni.$原定角色 || '');
-        const added = Object.keys(roster).filter((k) => !baseline.includes(k) && cleanName(k) !== designated);
+        const designatedRaw = declared || ni.$原定角色 || '';
+        const designated = cleanName(designatedRaw);
+        // 变奏差分豁免（每钥判定）：
+        //   ① 进节点快照内；② 精确整键＝主目标（标本键/改名键也能精确命中）；
+        //   ③ 档案标本键＝主目标；④ ★标本库声望者（标本身份/标本键/标本库成员/编号后缀）永不当"新增"——
+        //      标本干员在任何节点被带入、请回、改名都不算变奏；⑤ 裸名主目标豁免保持不动
+        //      （若主目标是标本身份，则裸名同名者不再豁免——原角色与标本角色不搞混）。
+        const added = Object.keys(roster).filter((k) => {
+          if (baseline.includes(k)) return false;
+          if (k === designatedRaw || k === designated) return false;
+          const rec = roster[k] || {};
+          if (rec.标本键 && rec.标本键 === designatedRaw) return false;
+          if (this._unitIsSpecimen(k, rec, v)) return false;
+          if (cleanName(k) === designated && !this._unitIsSpecimen(designatedRaw, roster[designatedRaw] || {}, v)) return false;
+          return true;
+        });
         if (!added.length) return;
         this._persistNodeSlice({
           active: true, status: 'event_node', nodeData: ni.$nodeData, year: ni.$当前时间点, 敌方: ni.$当前敌方,
@@ -4474,6 +4549,69 @@ Schema = (() => {
       const named = (nd && nd.encounter && nd.encounter.name) || (v['$切片'] || {}).$原定角色 || '';
       return cleanName(declared || named || '');
     },
+
+    /** 当前节点"遭遇/目标角色"的名字串（进节点口径 + AI 中途改写的当前对手），供蚀刻章判定用。
+     *  多来源拼成一个串再"含词"判断：`$当前敌方` 由 AI 写（可能中途换人），不能只认进节点那一个。 */
+    _encounteredNameBlob() {
+      try {
+        const v = readVars(this.win);
+        const sl = v['$切片'] || {};
+        const nd = (sl.$nodeData && typeof sl.$nodeData === 'object') ? sl.$nodeData
+          : ((State.currentNodeData && typeof State.currentNodeData === 'object') ? State.currentNodeData : {});
+        const names = [sl.$当前敌方, sl.$原定角色, nd.encounter && nd.encounter.name, nd.preset && nd.preset.name];
+        try { names.push(this._mainTargetName(nd)); } catch (e) {}
+        return names.filter(Boolean).map((s) => cleanName(String(s))).join('|');
+      } catch (e) { return ''; }
+    },
+
+    /** 编队里是否存在"名字含任一关键词"的干员（编队键由 AI 写，键名容错匹配） */
+    _rosterHasKeyword(keywords) {
+      try {
+        const list = Array.isArray(keywords) ? keywords : [keywords];
+        const r = readVars(this.win)['干员编队'] || {};
+        return Object.keys(r).some((k) => list.some((kw) => kw && cleanName(k).includes(kw)));
+      } catch (e) { return false; }
+    },
+
+    /**
+     * 蚀刻章授予（幂等）：按 ETCH_RULES 逐条判条件 —— **已有此章直接跳过**，缺则落盘 + 弹窗告知。
+     * 调用点：① _enterNode（遭遇当场）；② _handleAiReply（编队由 AI 写变量，回复后兜底）；
+     *        ③ _restoreGameState（重开窗口时补齐，防止"关着窗口达成条件"漏发）。
+     * 变量结构：蚀刻章[名] = { 描述, 标签 }；蚀刻章属长线数据，跨局保留（见 _resetRunScopedDraft）。
+     */
+    _syncEtchBadges() {
+      try {
+        const v = readVars(this.win);
+        const owned = (v['蚀刻章'] && typeof v['蚀刻章'] === 'object') ? v['蚀刻章'] : {};
+        const hit = [];
+        const blob = this._encounteredNameBlob();
+        ETCH_RULES.forEach((rule) => {
+          if (hasNamed(owned, rule.name)) return;                       // 已有此章 → 不触发
+          const eks = ETCH_ENCOUNTER_KEYWORD[rule.name];
+          if (eks && (Array.isArray(eks) ? eks : [eks]).some((kw) => kw && blob.includes(kw))) { hit.push(rule); return; }
+          const rks = ETCH_ROSTER_KEYWORD[rule.name];
+          if (rks && this._rosterHasKeyword(rks)) { hit.push(rule); return; }
+        });
+        if (!hit.length) return [];
+
+        writeVars(this.win, (d) => {
+          const m = d['蚀刻章'] = (d['蚀刻章'] && typeof d['蚀刻章'] === 'object') ? d['蚀刻章'] : {};
+          hit.forEach((rule) => {
+            // 二次幂等：读变量与写变量之间，AI 可能刚把同一枚章写进去
+            if (m[rule.name]) return;
+            m[rule.name] = { 描述: rule.描述 || '', 标签: '' };
+          });
+        });
+        this.refreshStats();
+        this._uiAlert('获得蚀刻章：\n\n'
+          + hit.map((r) => '◈ ' + r.name + (r.描述 ? '\n　　' + r.描述 : '')).join('\n\n')
+          + '\n\n（长线收藏，跨局保留；可在「收藏品库」查看）', '蚀刻章');
+        return hit.map((r) => r.name);
+      } catch (e) {
+        console.warn('[集成战略] 蚀刻章判定失败：', e && e.message);
+        return [];
+      }
+    },
     /** 主目标是否已收服入编队（编队存在 cleanName 相同的干员） */
     _mainTargetRecruited(nd) {
       const t = this._mainTargetName(nd);
@@ -4593,7 +4731,7 @@ Schema = (() => {
     },
 
     /**
-     * 敌我裁定：逐轴对比我方最终三轴 ≥ 敌方该轴抗性 → 该轴优势；优势达标则敌方量化减半，否则我方可量化减半；
+     * 敌我裁定：逐轴对比我方最终三轴 ≥ 敌方该轴抗性 → 该轴优势；优势达标则敌方量化减半，否则双方原值硬碰硬（我方不减半）；
      * 差>0胜 / <0负 / =0相持掷骰。
      * 难度修正（纯前端叠加，逐级生效）：
      *   - 难度4：须同时有 ≥2 轴优势才算"优势达标"；
@@ -4607,8 +4745,8 @@ Schema = (() => {
       const advantage = winAxes.length >= need;
       let deq = Number(deqBase) || 0;
       let eq = Number(enemy && enemy.量化) || 0;
-      if (advantage) eq = eq / 2;
-      else deq = deq / 2;
+      if (advantage) eq = eq / 2;   // 优势达标 → 敌方量化减半
+      // 优势未达标：双方原值硬碰硬，我方去量化不减半（按拍板设计，非"失败惩罚"）
       const kn = Number(known) || 0;
       const knownDelta = lv >= 5 ? -kn : kn;       // 难度5：所知效果反转
       const diff = (deq + knownDelta) - (eq + (Number(enemy && enemy.痴愚) || 0));
@@ -4623,7 +4761,7 @@ Schema = (() => {
      * 逐段：
      *   ① 优势轴有哪几个   —— winAxes（逐轴：我方该轴 ≥ 敌方该轴抗性）。
      *   ② 是否可以削弱敌方 —— advantage = winAxes.length ≥ need（need 视难度为 1 或 2 轴）。
-     *   ③ 削弱错误/失败时，量化战力是否能战胜 —— 此时我方去量化减半、敌方量化保持，实算 diff。
+     *   ③ 优势不足/无优势轴时，量化战力是否能战胜 —— 双方原值硬碰硬（我方不减半），实算 diff。
      *   ④ 削弱成功后，量化战力是否能战胜 —— 此时敌方量化减半、我方保持，实算 diff。
      *
      * 战报内嵌一条铁律：**三轴削弱是前置的削敌手段，本身不判赢**。
@@ -4637,7 +4775,7 @@ Schema = (() => {
       const deq = Number(deqBase) || 0;
       const verdictOf = (d) => (d > 0 ? '胜' : (d < 0 ? '负' : '相持·掷骰'));
       const dWin = r2((deq + kn) - ((eqE / 2) + fo));   // ④ 削弱成功
-      const dLose = r2(((deq / 2) + kn) - (eqE + fo));  // ③ 削弱失败 / 无优势轴
+      const dLose = r2((deq + kn) - (eqE + fo));  // ③ 优势不足/无优势轴：双方原值硬碰硬，我方去量化不减半
       const dNow = r2(b.diff);                          // 当前实算（= 上面两支之一）
       return '【裁定·四段式】'
         + '\n① 优势轴（逐轴比较，我方该轴 ≥ 敌方该轴抗性即成立）：'
@@ -4646,9 +4784,9 @@ Schema = (() => {
         + '\n② 能否削弱敌方：'
         + (b.advantage
           ? '可削弱 —— 优势轴数已达门槛（需 ' + b.need + ' 轴），成立时敌方量化减半（' + r2(eqE) + ' → ' + r2(eqE / 2) + '）。'
-          : '不可削弱 —— 优势轴数未达门槛（需 ' + b.need + ' 轴，现有 ' + b.winAxes.length + ' 轴），此时改为我方去量化减半（' + r2(deq) + ' → ' + r2(deq / 2) + '），敌方量化保持 ' + r2(eqE) + '。')
-        + '\n③ 削弱错误 / 削弱失败时，量化战力可否战胜：'
-        + '实算 我方(去量化减半 ' + r2(deq / 2) + ' + 所知 ' + r2(kn) + ') vs 敌方(量化 ' + r2(eqE) + ' + 痴愚 ' + r2(fo) + ')，差 ' + dLose + ' → ' + verdictOf(dLose) + '。'
+          : '不可削弱 —— 优势轴数未达门槛（需 ' + b.need + ' 轴，现有 ' + b.winAxes.length + ' 轴），此时双方原值硬碰硬：我方去量化保持 ' + r2(deq) + '，敌方量化保持 ' + r2(eqE) + '。')
+        + '\n③ 优势不足 / 无优势轴时，量化战力可否战胜（双方原值硬碰硬）：'
+        + '实算 我方(去量化 ' + r2(deq) + ' + 所知 ' + r2(kn) + ') vs 敌方(量化 ' + r2(eqE) + ' + 痴愚 ' + r2(fo) + ')，差 ' + dLose + ' → ' + verdictOf(dLose) + '。'
         + '\n④ 削弱成功后，量化战力可否战胜：'
         + '实算 我方(去量化 ' + r2(deq) + ' + 所知 ' + r2(kn) + ') vs 敌方(量化减半 ' + r2(eqE / 2) + ' + 痴愚 ' + r2(fo) + ')，差 ' + dWin + ' → ' + verdictOf(dWin) + '。'
         + '\n⑤ 当前实算：差 ' + dNow + ' → ' + b.verdict + '（前方故事线以本段为唯一口径）。'
@@ -4900,6 +5038,8 @@ Schema = (() => {
         + tail);
       this.switchView('event_node');
       this._showNodeStackOverlay();
+      // 蚀刻章：遭遇当场判定（例：第一次遭遇「洁尔佩塔」→「内部爱」）
+      this._syncEtchBadges();
       setTimeout(() => Engine._sendAsUser(this.win, report), 250);
     },
 
@@ -5991,7 +6131,7 @@ Schema = (() => {
 
     /**
      * █ 统一「玩家消息」发送出口（确认后、发送前）：
-     *   - 战报触发：以最终正文（选项标题/输入框原文/草稿）命中「进入一场特殊的战斗」为唯一依据；
+     *   - 战报触发：以最终正文（选项标题/选项简介/输入框原文/草稿）命中「进入一场特殊的战斗」且当前为不期而遇节点为唯一依据；
      *     只在确认回调内执行一次——两段式选项的「展开」与用户来回犹豫不进入本方法，杜绝重复拼装。
      *   - 拼装时机：此刻 vars 为最近一次 AI 回复处理后的最新值，战报不过期；
      *   - 异步边界：await createChatMessages 完成后再 triggerSlash（战报先落进消息再触发回复）；
@@ -6004,7 +6144,7 @@ Schema = (() => {
       try {
         // 无对手不开战：不期而遇有 50% 概率无目标角色，此间不存在可打的人 →
         // 即便文本命中关键词也不拼战报（否则会生成一张"没有对手"的空战报）。
-        if (BATTLE_KEYWORD_RE.test(raw) && this._nodeHasTarget()) {
+        if (BATTLE_KEYWORD_RE.test(raw) && this._nodeHasTarget() && this._isUnexpectedNode()) {
           const rep = this._computeBattleReport();
           if (rep) raw += '\n' + this._sys(rep);
         }
@@ -6071,6 +6211,7 @@ Schema = (() => {
       if (this._checkRunFailed()) return;
       this._auditNodeVariant();  // 检查"额外收服"是否已入库 → 决定锁定/弹出
       this._updateNodeLeaveGate(); // 作战节点收服主目标后解锁离开按钮
+      this._syncEtchBadges();      // 蚀刻章：编队/遭遇都由变量驱动，每次回复后兜底判定（幂等，已有则不触发）
       this.refreshStats();         // 顶栏数值 + 层数罗马数字 + 常驻右下角三轴雷达（节点内外均按最新值刷新）
       this.loadHistoryChat();
       try {
@@ -6145,9 +6286,14 @@ Schema = (() => {
       const input = this.win.document.getElementById('chat-input');
       const draft = input ? (input.value || '').trim() : '';
       let msg = draft ? `(玩家输入: ${draft})\n【选择】${it.title}` : `【选择】${it.title}`;
+      // 战报触发契约（世界书：招惹选项的「简介」= 触发信号）：
+      // 简介命中触发词时并入消息 —— 否则 _commitPlayerMessage 只见标题、拼不出战报（历史缺口，已修）。
+      if (it.desc && BATTLE_KEYWORD_RE.test(String(it.desc))) {
+        msg += '\n（简介：' + String(it.desc).trim() + '）';
+      }
       if (State.pendingLeaveNote) { msg = State.pendingLeaveNote + '\n' + msg; State.pendingLeaveNote = ''; }
       if (input) input.value = '';
-      // 统一出口：选项标题/草稿命中关键词自动拼战报（二次确认后、发送前），再回显提交触发
+      // 统一出口：标题/简介/草稿命中关键词自动拼战报（二次确认后、发送前），再回显提交触发
       this._commitPlayerMessage(msg);
     },
 
@@ -6251,7 +6397,7 @@ Schema = (() => {
       } catch (e) {}
       // 草稿命中战斗关键词：确认后、发送前拼战报（与玩家发送出口同规则，System 路径兜底不遗漏）
       // 同样加"无对手不开战"守卫：不期而遇无目标角色时，此间没有可打的人。
-      if (draft && BATTLE_KEYWORD_RE.test(combined) && Router._nodeHasTarget()) {
+      if (draft && BATTLE_KEYWORD_RE.test(combined) && Router._nodeHasTarget() && Router._isUnexpectedNode()) {
         try {
           const rep = Router._computeBattleReport();
           if (rep) combined += '\n' + Router._sys(rep);
